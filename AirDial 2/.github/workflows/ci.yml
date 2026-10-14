@@ -1,0 +1,26 @@
+name: Build and test
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test recognition state machine
+        run: swift run AirDialChecks
+      - name: Build universal app
+        run: bash scripts/build.sh universal
+      - name: Verify installation without activating camera
+        run: dist/AirDial.app/Contents/MacOS/AirDial --self-check
+      - uses: actions/upload-artifact@v7
+        with:
+          name: AirDial-macOS
+          if-no-files-found: error
+          path: |
+            dist/*.zip
+            dist/*.sha256

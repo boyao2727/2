@@ -1,0 +1,22 @@
+name: Publish GitHub release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - run: swift run AirDialChecks
+      - name: Build universal download
+        env:
+          AIRDIAL_VERSION: ${{ github.ref_name }}
+        run: bash scripts/build.sh universal
+      - name: Create beta release with downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.sha256 \
+            --title "AirDial $GITHUB_REF_NAME" --prerelease --notes-file docs/RELEASE_NOTES.md
